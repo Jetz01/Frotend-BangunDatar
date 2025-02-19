@@ -8,7 +8,7 @@ import { useRouter } from 'src/routes/hooks';
 
 const toastConfig: ToastOptions = {
   position: 'top-right',
-  autoClose: 5000,
+  autoClose: 3000,
   hideProgressBar: false,
   closeOnClick: true,
   pauseOnHover: true,
@@ -19,9 +19,9 @@ const toastConfig: ToastOptions = {
 };
 
 export function UserViewEdit() {
-  const [nama, setNama] = useState<String>('');
-  const [kelas, setKelas] = useState<String>('');
-  const [sekolah, setSekolah] = useState<String>('');
+  const [nama, setNama] = useState<string>('');
+  const [kelas, setKelas] = useState<string>('');
+  const [sekolah, setSekolah] = useState<string>('');
   const [skorBangunDatar, setSkorBangunDatar] = useState('');
   const [skorLuasKeliling, setSkorLuasKeliling] = useState('');
 
@@ -30,14 +30,43 @@ export function UserViewEdit() {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const token = sessionStorage.getItem('token');
 
-  const handleSubmitForm = async (id_user: String) => {
+  const handleSubmitForm = async (id_user: String | undefined) => {
+    if (Number(skorBangunDatar) > 100) {
+      return toast.error('Skor Bangun Datar tidak bisa lebih dari 100', toastConfig);
+    }
+
+    if (Number(skorLuasKeliling) > 100) {
+      return toast.error('Skor Luas & Keliling tidak bisa lebih dari 100', toastConfig);
+    }
+
     try {
       const responseUserEditAPI = await fetch(`${API_BASE_URL}/siswa/${id_user}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify({
+          nama,
+          kelas,
+          sekolah,
+          skor_bangun_datar: skorBangunDatar,
+          skor_luas_keliling: skorLuasKeliling,
+        }),
       });
+
+      if (responseUserEditAPI.status === 401) {
+        router.push('/sign-in');
+        return toast.error('Sesi anda telah habis. Silakan login kembali.', toastConfig);
+      }
+
+      if (!responseUserEditAPI.ok) {
+        return toast.error('Terjadi kesalahan saat update data. Silakan coba kembali', toastConfig);
+      }
+
+      toast.success('Data Berhasil di update', toastConfig);
+      router.push('/');
+      return null;
     } catch (error) {
       const errorMessage = error?.message || 'Terjadi kesalahan';
       return toast.error(errorMessage, toastConfig);
@@ -54,8 +83,8 @@ export function UserViewEdit() {
         });
 
         if (responseUserDataIdAPI.status === 401) {
-          toast.error('Token telah kedaluwarsa. Silakan login kembali.', toastConfig);
-          return router.push('./sign-in');
+          toast.error('Sesi anda telah habis. Silakan login kembali.', toastConfig);
+          return router.push('/sign-in');
         }
 
         if (!responseUserDataIdAPI.ok) {
@@ -123,7 +152,16 @@ export function UserViewEdit() {
         name="skorBangunDatar"
         label="Skor Bangun Datar"
         placeholder="Skor Bangun Datar"
-        onChange={(e) => setSkorBangunDatar(e.target.value)}
+        type="number"
+        onChange={(e) => {
+          let value = e.target.value;
+
+          if (value.length > 3) {
+            value = value.slice(0, 3);
+          }
+
+          setSkorBangunDatar(value);
+        }}
         value={skorBangunDatar}
         sx={{ mb: 5 }}
       />
@@ -133,12 +171,25 @@ export function UserViewEdit() {
         name="skorLuasKeliling"
         label="Skor Luas Keliling"
         placeholder="Skor Luas Keliling"
-        onChange={(e) => setSkorLuasKeliling(e.target.value)}
+        type="number"
+        onChange={(e) => {
+          let value = e.target.value;
+
+          if (value.length > 3) {
+            value = value.slice(0, 3);
+          }
+
+          setSkorLuasKeliling(value);
+        }}
         value={skorLuasKeliling}
         sx={{ mb: 5 }}
       />
       <Box display="flex" alignItems="center" justifyContent="center" mb={5}>
-        <Button variant="contained" sx={{ px: '40px', py: '10px' }}>
+        <Button
+          onClick={() => handleSubmitForm(id)}
+          variant="contained"
+          sx={{ px: '40px', py: '10px' }}
+        >
           Submit
         </Button>
       </Box>

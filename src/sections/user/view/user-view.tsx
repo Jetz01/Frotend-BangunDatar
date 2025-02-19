@@ -30,7 +30,7 @@ import { TableLoading } from '../table-loading';
 
 const toastConfig: ToastOptions = {
   position: 'top-right',
-  autoClose: 5000,
+  autoClose: 3000,
   hideProgressBar: false,
   closeOnClick: true,
   pauseOnHover: true,
@@ -62,8 +62,8 @@ export function UserView() {
       });
 
       if (responseDeleteUserAPI.status === 401) {
-        toast.error('Token telah kedaluwarsa. Silakan login kembali.', toastConfig);
-        return router.push('./sign-in');
+        toast.error('Sesi anda telah habis. Silakan login kembali.', toastConfig);
+        return router.push('/sign-in');
       }
 
       if (!responseDeleteUserAPI.ok) {
@@ -93,8 +93,8 @@ export function UserView() {
         });
 
         if (responseUserDataAPI.status === 401) {
-          toast.error('Token telah kedaluwarsa. Silakan login kembali.', toastConfig);
-          return router.push('./sign-in');
+          toast.error('Sesi anda telah habis. Silakan login kembali.', toastConfig);
+          return router.push('/sign-in');
         }
 
         const userDataJSON = await responseUserDataAPI.json();
